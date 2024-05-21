@@ -25,7 +25,7 @@
       p5rc = await fetchData();
       loaded = true;
     } catch (error) {
-      consle.error(error);
+      console.error(error);
     }
   });
 </script>

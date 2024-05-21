@@ -7,7 +7,6 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 RUN npm install
-RUN npn run build
 COPY . .
 
 RUN chmod +x bin/p5-manager.js

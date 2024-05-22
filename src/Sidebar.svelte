@@ -42,7 +42,7 @@
           <span on:click="{() => handleRouteChange(`/${project}`)}"
           class="{project === $location.slice(1) ? '-active' : ''}">
           {project}
-          <span>
+          </span>
           <a href="{`/${project}/index.html`}" target="_blank">↗</a>
         </li>
       {/each}

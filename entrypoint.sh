@@ -26,8 +26,6 @@ generate_project_if_not_exists() {
 
 # Create collections if they don't exist
 create_collection_if_not_exists "sketches"
-create_collection_if_not_exists "sketches-intro"
-create_collection_if_not_exists "projects"
 
 # Ensure the .p5rc file exists and is initialized if not
 if [ ! -f /app/data/.p5rc ]; then
@@ -35,7 +33,8 @@ if [ ! -f /app/data/.p5rc ]; then
 fi
 
 # Generate the first project if it doesn't exist
-generate_project_if_not_exists "first-project"
+generate_project_if_not_exists "firstsketch"
+generate_project_if_not_exists "secondsketch"
 
 # Start the server
 echo "Starting the p5-manager server..."

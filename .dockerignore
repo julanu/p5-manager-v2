@@ -1,0 +1,16 @@
+# Ignore this stuff
+
+**/node_modules/
+**/dist
+.git
+npm-debug.log
+.coverage
+.coverage.*
+.env
+.aws
+CHANGELOG.md
+README.md
+screenshot.png
+.editorconfig
+.prettierignore
+.prettierrc.json

@@ -13,7 +13,7 @@ jobs:
           uses: actions/checkout@v2
 
         - name: Build and Push the image
-          uses: julanu/composite-actions/docker-build-push@test-release
+          uses: julanu/composite-actions/docker-build-push@latest
           with:
             registry_user: ${{ secrets.DOCKERID }}
             registry_pwd: ${{ secrets.DOCKERKEY }}

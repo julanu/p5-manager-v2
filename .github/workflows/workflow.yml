@@ -1,0 +1,22 @@
+name: Build & Push Docker Image
+
+on:
+  workflow_dispatch:
+
+jobs:
+    build-docker-image:
+      runs-on: self-hosted
+
+      steps:
+        - name: Checkout Repository
+          uses: actions/checkout@v2
+
+        - name: Build and Push the image
+          uses: julanu/composite-actions/docker-build-push@v1.1.0
+          with:
+            registry_user: ${{ secrets.DOCKERID }}
+            registry_pwd: ${{ secrets.DOCKERKEY }}
+            image_name: mjula/images
+            tag: p5manager
+            dockerfile: ./Dockerfile
+            platforms: linux/arm64

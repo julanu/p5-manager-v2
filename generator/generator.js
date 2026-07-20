@@ -3,7 +3,13 @@ var path = require('path');
 var request = require('request');
 var download = require('download');
 
-var dataDir = '/app/data';
+var dataDir = path.resolve(
+    process.env.P5_DATA_DIR || path.join(process.cwd(), 'data')
+);
+
+function ensureDataDir() {
+    fs.mkdirSync(dataDir, { recursive: true });
+}
 
 var templates = {
     sketchjs: loadFile('templates/sketch.js'),
@@ -17,6 +23,8 @@ var libraries = {
 
 var generator = {
     collection: function (collection, opt) {
+        ensureDataDir();
+
         var p5rc = {
             name: collection,
             projects: [],
@@ -28,6 +36,8 @@ var generator = {
         });
     },
     project: function (project, opt) {
+        ensureDataDir();
+
         templates.indexhtml = templates.indexhtml.replace('{{project-title}}', project);
         templates.indexhtmlb = templates.indexhtmlb.replace('{{project-title}}', project);
 
@@ -58,6 +68,8 @@ var generator = {
     },
 
     rename: function (oldName, newName) {
+        ensureDataDir();
+
         var obj = JSON.parse(fs.readFileSync(path.join(dataDir, '.p5rc'), 'utf-8'));
         let found = false;
 
@@ -94,6 +106,8 @@ var generator = {
     },
 
     update: function () {
+        ensureDataDir();
+
         var option = {
             url: 'https://api.github.com/repos/processing/p5.js/releases/latest',
             headers: {

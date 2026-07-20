@@ -1,112 +1,85 @@
+# p5-manager
+
 [![npm version](https://badge.fury.io/js/p5-manager.svg)](https://badge.fury.io/js/p5-manager)
 
-p5-manager is a [p5js](https://github.com/processing/p5.js/) template builder and sketch manager. This command-line tool also supports livereload, Babel ES6 auto-compiling and other useful features. Built for p5.js enthusiasts.
+p5-manager is a p5.js sketch generator and browser. It provides a responsive
+web interface for navigating collections, viewing sketches, and reloading them
+while you work.
 
-![p5 Manager - GUI](screenshot.png)
+![p5-manager GUI](screenshot.png)
 
-## Quick Start
+## Features
 
-```bash
-$ npm install -g p5-manager
-```
+- Browse multiple p5.js sketches from one responsive interface.
+- Open and close a scrollable project sidebar that expands for long names.
+- Scale sketch canvases to the available browser width while preserving their
+  aspect ratio.
+- Load any local collection with `P5_SKETCH_DIR`.
+- Automatically discover sketch folders when no `.p5rc` is present.
+- Use `.p5rc` to control the collection name, project selection, and order.
+- Generate collections, sketches, bundled sketches, and ES6 templates.
+- Serve sketches directly or inside the manager UI.
+- Reload the selected collection when files change.
+- Run locally or mount host collections into Docker as read-only folders.
 
-There are several use case of p5-manager, Before going further, choose the one best describe your requirements and go ahead.
+## Requirements
 
-- I want to handle multiple sketches at the same time. Go check `Collection`.
-- I want livereload or babel auto-compiling to improve my p5.js development experience. Go check `Collection`.
-- I just need a CLI command to easily initialize a new p5 project (with default p5.js libraries in it). Go check `Bundle`.
+- Node.js and npm for local development.
+- Docker for the container workflow.
+- A sketch folder must contain an `index.html` file to be discovered
+  automatically.
 
-## Collection
+## Quick start
 
-### Step 1: Initialize a new collection
-
-```bash
-$ p5 new my_collection
-```
-
-By running this command, it will create a collection directory and some p5 libraries to it. See the output log:
-
-```bash
-# create : my_collection
-# create : my_collection/libraries
-# create : my_collection/libraries/p5.js
-# ...
-```
-
-### Step 2: Generate a p5 project
+Install dependencies and build the frontend:
 
 ```bash
-$ cd my_collection
-$ p5 generate my_project
-# or...
-$ p5 g my_project
+npm install
+npm run build
 ```
 
-This will generate a p5 project folder with default templates in it. (Make sure you are running this command in a collection directory.)
+Start the included demo collection:
 
 ```bash
-# create : my_project
-# create : my_project/sketch.js
-# create : my_project/index.html
+node bin/p5-manager.js server
 ```
 
-### Step 3: Start the server and have fun!
+Open [http://localhost:5555](http://localhost:5555).
 
-```bash
-$ p5 server
-# or...
-$ p5 s
+The live-reload client uses port `35729`, so make sure that port is available.
+
+## Loading sketches
+
+### Automatic folder discovery
+
+Point `P5_SKETCH_DIR` at any directory containing sketch subfolders:
+
+```text
+my-sketches/
+├── particles/
+│   ├── index.html
+│   └── sketch.js
+└── waves/
+    ├── index.html
+    └── sketch.js
 ```
 
-Now edit your sketch.js and go to `localhost:5555`, then p5-manager will do the rest. The server supports livereload as default. (Notice: You should run `p5 server` in a collection directory, instead of a project directory.)
-
-## Bundle
-
-You don't always need a collection in some cases. p5-manager also allows you to generate a standalone bundled project with its own p5 libraries included. You can use this command anywhere without GUI or collection mentioned above. Just make sure to add the flag correctly.
-
-```bash
-p5 generate --bundle PROJECT_NAME
-# or...
-p5 g -b PROJECT_NAME
-```
-
-Which will do something like this:
-
-```bash
-# create : my_project
-#   create : my_project/sketch.js
-#   create : my_project/index.html
-#   create : my_project/libraries
-#   create : my_project/libraries/p5.js
-#   create : my_project/libraries/p5.sound.js
-```
-
-## Advanced Usage
-
-### Static mode v.s GUI mode in Collection
-
-There are two ways to get access to your sketch in a collection. One is public path, ex: `localhost:5555/demo1/index.html`. The other way is GUI mode, just go to: `localhost:5555`.
-
-### Customize port
-
-```bash
-p5 server --port 8888
-# or...
-p5 s -p 8888
-```
-
-### Use a custom sketches folder
-
-Set `P5_SKETCH_DIR` to a collection directory. Absolute and relative paths are
-supported. If the directory has no `.p5rc`, p5-manager automatically discovers
-each immediate child directory containing an `index.html` file.
+Start the server with an absolute or relative path:
 
 ```bash
 P5_SKETCH_DIR="/Users/you/Sketches" node bin/p5-manager.js server
 ```
 
-To control the collection name, project selection, or order, add an optional
-`/Users/you/Sketches/.p5rc` file such as:
+When `.p5rc` is absent, p5-manager discovers every immediate child directory
+that contains `index.html` and lists the results alphabetically.
+
+Restart the server after adding or removing sketch folders. The project routes
+are registered when the server starts.
+
+### Configuring a collection with `.p5rc`
+
+Add an optional `.p5rc` file at the root of the collection when you want to
+choose the displayed sketches or their order:
 
 ```json
 {
@@ -115,28 +88,104 @@ To control the collection name, project selection, or order, add an optional
 }
 ```
 
-Restart the server after adding or removing a project from `.p5rc`.
+Only projects listed in `projects` appear in the sidebar when this file exists.
+The folder names must match the entries exactly.
 
-### Running with Docker
+### Viewing sketches
 
-If you don't want to (or can't) install the dependencies on your local machine, you can use the included Dockerfile to build a p5-manager container and run the server from there.
+The collection is available in two forms:
 
+- Manager UI: `http://localhost:5555/#/particles`
+- Direct sketch page: `http://localhost:5555/particles/index.html`
+
+The manager injects responsive canvas styles into same-origin sketch frames.
+Generated templates include the same responsive defaults for direct viewing.
+
+## Generator
+
+The CLI is available through `node bin/p5-manager.js` in this repository or as
+`p5` when the package is installed globally:
+
+```bash
+npm install -g p5-manager
 ```
-# build the container
-$ docker build -t p5-manager .
 
-# run bash inside the container
-# binding the server and live-reload ports to the host
-# mount /app to the current directory
-$ docker run -it -p 5555:5555 -p 35729:35729 -v"$(PWD)":/app p5manager bash
+Available commands:
 
-# inside the container...
-$ cd /app
-$ p5 server
+```text
+p5 new <collection>                 Create a collection and p5.js library
+p5 generate <project>               Generate a sketch and register it in .p5rc
+p5 generate --bundle <project>      Generate a standalone sketch with libraries
+p5 generate --es6 <project>         Generate an ES6 sketch template
+p5 rename <old-name> <new-name>     Rename a registered project
+p5 update                           Download the latest p5.js release
+p5 server                           Start the manager server
 ```
 
-To serve a collection from the host without copying it into the image, mount
-the folder and point `P5_SKETCH_DIR` at the container path:
+Short aliases are available: `n`, `g`, `mv`, `u`, and `s`.
+
+### Generator data location
+
+The generator writes to `./data` by default. Override its base directory with
+`P5_DATA_DIR`. For example, create a local collection and add a sketch to it:
+
+```bash
+P5_DATA_DIR="$PWD" node bin/p5-manager.js new my-collection
+P5_DATA_DIR="$PWD/my-collection" node bin/p5-manager.js generate particles
+P5_SKETCH_DIR="$PWD/my-collection" node bin/p5-manager.js server
+```
+
+Inside the Docker image, the working directory is `/app`, so the same default
+becomes `/app/data`. The generator updates `.p5rc` when a regular project is
+created or renamed. Restart the server after generating or renaming projects so
+the routes are refreshed.
+
+### Bundled projects
+
+A bundled sketch includes its own `libraries/p5.js` and can be served without
+the shared collection library:
+
+```bash
+node bin/p5-manager.js generate --bundle poster-study
+```
+
+## Hosting without Docker
+
+p5-manager can run as a regular Node.js service. A static host alone is not
+enough because the application needs the Express API, filesystem access, sketch
+routes, and live reload.
+
+On a VPS, home server, or NAS, install dependencies and build once:
+
+```bash
+npm ci
+npm run build
+```
+
+Then run the server with a persistent collection path:
+
+```bash
+NODE_ENV=production \
+P5_SKETCH_DIR=/srv/p5-sketches \
+node bin/p5-manager.js server --port 5555
+```
+
+Use a service manager such as systemd or PM2 to keep the process running, and
+place Caddy, Nginx, or another reverse proxy in front of port `5555` for HTTPS.
+If live reload is needed remotely, proxy port `35729` as well. For a public
+read-only gallery, consider disabling the live-reload script before deployment.
+
+## Docker
+
+Build the image:
+
+```bash
+docker build -t p5-manager .
+```
+
+### Mount an existing collection
+
+Mount a host directory read-only and select it with `P5_SKETCH_DIR`:
 
 ```bash
 docker run --rm -it \
@@ -148,29 +197,73 @@ docker run --rm -it \
   p5-manager
 ```
 
-### Update libraries
+Open [http://localhost:5555](http://localhost:5555). A mounted collection does
+not need `.p5rc`; valid sketch folders are discovered automatically.
 
-We provide a decent method to update p5 libraries to the latest version:
+### Persist generated sketches
+
+Use a named volume for `/app/data` and tell the server to load it:
 
 ```bash
-$ cd my_collection
-$ p5 update
-# or...
-$ p5 u
+docker volume create p5-manager-data
+
+docker run --rm -it \
+  -p 5555:5555 \
+  -p 35729:35729 \
+  -e P5_SKETCH_DIR=/app/data \
+  -v p5-manager-data:/app/data \
+  --name p5-manager \
+  p5-manager
 ```
 
-By running this, p5-manager will check the latest release tag of p5.js on github, and download `p5.js` and `p5.sound.js` to the `libraries` folder in your collection. (This might break your projects since they depends on older p5.js libraries.)
+Generate another sketch in a running container:
 
-### .p5rc
+```bash
+docker exec p5-manager node bin/p5-manager.js generate new-sketch
+```
 
-The main purpose of `.p5rc` is to track projects in the collection. Once you generate a project with command `p5 generate`, it will be automatically added to `.p5rc`. Projects listed in the `.p5rc` file would be served in the GUI mode.
+Restart the container afterward so the new project route is registered. The
+named volume keeps the generated files between container runs.
 
-Currently, if you create a project without using `p5 generate`, you'll have to append the project name into `.p5rc` on your own, to add it to stage. Please follow the rule of JSON formatting when doing this.
+## Local development
 
-## About this project
+Build the Svelte frontend:
 
-I'm a graphic design student who use p5.js a lot so I need something to help me develop, manage or demo my p5.js projects more efficiently. That's why p5-manager was made.
+```bash
+npm run build
+```
 
-Inspired by [kadamwhite/p5-cli](https://github.com/kadamwhite/p5-cli) and [express/generator](https://github.com/expressjs/generator).
+Start the full application server:
 
-Distributed under the MIT license.
+```bash
+node bin/p5-manager.js server
+```
+
+Use a different HTTP port when necessary:
+
+```bash
+node bin/p5-manager.js server --port 8888
+```
+
+`npm start` serves only the compiled frontend. It does not provide
+`/api/p5rc`, project routes, or the sketch collection, so use the CLI server for
+full application testing.
+
+## HTTP endpoints
+
+- `GET /` — manager frontend.
+- `GET /api/p5rc` — collection name and project list.
+- `GET /<project>/` — static files for a configured or discovered sketch.
+- `GET /assets/*` — manager assets.
+- `GET /build/*` — compiled frontend assets.
+- `GET /libraries/*` — shared p5.js libraries.
+
+The server does not expose write APIs. Sketch creation and updates are handled
+through the filesystem and CLI.
+
+## License
+
+Distributed under the MIT License.
+
+Originally created by Chiun Hau You and inspired by
+[kadamwhite/p5-cli](https://github.com/kadamwhite/p5-cli).

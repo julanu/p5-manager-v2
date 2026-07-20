@@ -1,8 +1,8 @@
 <script>
   import { onMount } from 'svelte';
   import { push, location } from 'svelte-spa-router';
+  export let isSidebarActive = false;
 
-  let isActive = false;
   let loaded = false;
   let p5rc;
 
@@ -11,13 +11,8 @@
     return await response.json();
   };
 
-  function handleToggle() {
-    isActive = !isActive;
-  }
-
   function handleRouteChange(to) {
     push(to);
-    isActive = false;
   }
 
   onMount(async () => {
@@ -30,20 +25,16 @@
   });
 </script>
 
-<div class="sidebar {isActive ? '-active' : ''}">
-  <button class="toggle" on:click="{handleToggle}">
-    <img src="/assets/star.png" alt="star.png" />
-  </button>
+<aside id="project-menu" class="sidebar {isSidebarActive ? '-active' : ''}" aria-hidden={!isSidebarActive}>
   {#if loaded}
     <h2>{p5rc.collectionName}</h2>
     <ul>
       {#each p5rc.projects as project}
         <li>
-          <span on:click="{() => handleRouteChange(`/${project}`)}"
-          class="{project === $location.slice(1) ? '-active' : ''}">
-          {project}
-          </span>
-          <a href="{`/${project}/index.html`}" target="_blank">↗</a>
+          <button type="button" on:click="{() => handleRouteChange(`/${project}`)}"
+            class="{project === $location.slice(1) ? '-active' : ''}">
+            {project}
+          </button>
         </li>
       {/each}
     </ul>
@@ -58,73 +49,119 @@
     <a href="https://twitter.com/chiunhauyou" class="author highlight"
       >@chiunhauyou</a>
   </div>
-</div>
+</aside>
 
 <style>
   .sidebar {
-    position: absolute;
+    position: fixed;
     top: 0;
-    left: -220px;
+    left: 0;
     width: 220px;
     height: 100%;
-    padding-left: 20px;
-    background-color: #f5f5f5;
+    padding: 70px 16px 24px;
+    background-color: #333;
+    color: #fff;
     text-align: left;
-    transition: all 0.5s;
-    -webkit-transition: all 0.5s;
-    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(-100%);
+    visibility: hidden;
+    overflow: hidden;
+    transition: transform 0.5s ease, width 0.3s ease,
+      visibility 0s linear 0.5s;
+    z-index: 1000;
     box-sizing: border-box;
   }
 
   .sidebar.-active {
-    left: 0;
+    transform: translateX(0);
+    visibility: visible;
+    transition-delay: 0s;
+    box-shadow: 4px 0 18px rgba(0, 0, 0, 0.2);
   }
 
-  .toggle {
-    position: absolute;
-    top: 10px;
-    right: -40px;
-    background-color: transparent;
-    border: none;
-    transition: all 1s;
-    -webkit-transition: all 1s;
-    z-index: 11;
-    cursor: pointer;
+  .sidebar.-active:hover {
+    width: min(460px, calc(100vw - 24px));
   }
 
-  .toggle > img {
-    width: 24px;
-  }
-
-  .sidebar.-active .toggle {
-    -ms-transform: rotate(144deg);
-    -webkit-transform: rotate(144deg);
-    transform: rotate(144deg);
+  .sidebar h2 {
+    flex: 0 0 auto;
+    margin: 0 0 20px;
+    color: #f07;
+    font-size: 20px;
+    overflow-wrap: anywhere;
   }
 
   .sidebar ul {
+    flex: 1 1 auto;
+    min-height: 0;
     list-style-type: none;
     margin: 0;
-    padding: 0;
+    padding: 0 6px 0 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-color: #f07 #292929;
+    scrollbar-width: thin;
+  }
+
+  .sidebar ul::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .sidebar ul::-webkit-scrollbar-track {
+    background: #292929;
+    border-radius: 4px;
+  }
+
+  .sidebar ul::-webkit-scrollbar-thumb {
+    background: #f07;
+    border-radius: 4px;
   }
 
   .sidebar ul li {
-    cursor: pointer;
+    margin-bottom: 6px;
   }
 
-  .sidebar ul li span.-active {
+  .sidebar ul li button {
+    width: 100%;
+    padding: 10px 12px;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: #eee;
+    font: inherit;
+    line-height: 1.35;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+
+  .sidebar ul li button:hover,
+  .sidebar ul li button:focus-visible {
+    background: rgba(255, 0, 119, 0.16);
+    color: #fff;
+    outline: 2px solid #f07;
+    outline-offset: -2px;
+  }
+
+  .sidebar ul li button.-active {
+    background: #f07;
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .sidebar a {
     color: #f07;
   }
 
-  .sidebar ul li a {
-    color: #333;
-  }
-
   .sidebar .footer {
-    position: absolute;
-    bottom: 20px;
+    flex: 0 0 auto;
+    padding-top: 18px;
     font-size: 13px;
-    color: #333;
+    color: #bbb;
   }
 
   .highlight {
